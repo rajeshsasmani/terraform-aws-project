@@ -1,2 +1,2 @@
 # terraform-aws-project
-creating aws infrastructure with terraform
+creating aws s3 bucket with terraform
