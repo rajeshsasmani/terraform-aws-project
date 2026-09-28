@@ -1,57 +1,43 @@
-provider "aws" {
-  region = "us-east-1"
-}
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr_block
+  enable_dns_support   = var.enable_dns_support
+  enable_dns_hostnames = var.enable_dns_hostnames
 
-resource "aws_vpc" "my_first_vcp" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "aws-project"
-  }
+  tags = merge(var.tags, { Name = var.vpc_name })
 }
 
 resource "aws_subnet" "private" {
-  vpc_id            = aws_vpc.my_first_vcp.id
-  cidr_block        = "10.0.0.0/24"
-  availability_zone = "us-east-1a"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnet_cidr_block
+  availability_zone = var.private_availability_zone
 
-  tags = {
-    Name = "aws-project-private"
-  }
+  tags = merge(var.tags, { Name = "${var.vpc_name}-private" })
 }
 
 resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.my_first_vcp.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1b"
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr_block
+  availability_zone       = var.public_availability_zone
   map_public_ip_on_launch = true
 
-  tags = {
-    Name = "aws-project-public"
-  }
+  tags = merge(var.tags, { Name = "${var.vpc_name}-public" })
 }
 
 resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.my_first_vcp.id
+  vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "aws-project-igw"
-  }
+  tags = merge(var.tags, { Name = "${var.vpc_name}-igw" })
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.my_first_vcp.id
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = {
-    Name = "aws-project-public"
-  }
+  tags = merge(var.tags, { Name = "${var.vpc_name}-public" })
 }
 
 resource "aws_route_table_association" "public" {
